@@ -52,8 +52,15 @@ async function registerUserController (req , res ) {
 
     // Send welcome email
 
-    await emailService.sendRegisterEmail(email, userName);
-  res.status(201).json({
+try {
+
+   await emailService.sendRegisterEmail(email, userName);
+
+} catch(err) {
+
+   console.log("Email Error:", err.message);
+
+}  res.status(201).json({
     message : "User Register succesfully " ,
     user : {
       id : user._id ,
@@ -62,45 +69,67 @@ async function registerUserController (req , res ) {
     }
   })
  
-}
-async function loginUserController(req , res) {
-  const {email , password} = req.body ;
-  const user = await userModel.findOne({email}).select('+password') ;
-  if (!user) {
-    return res.status(400).json({
-      message : "Invalid email and password"
-    })
-  }
+}async function loginUserController(req, res) {
+   try {
 
-  const isPasswordValid = await bcrypt.compare(password , user.password)  ;
-  if(!isPasswordValid) {
-    return res.status(400).json({
-      message : "Invalid user , password"
-    })
-  }
-  const token = jwt.sign({userName : user.userName , id : user._id} , process.env.JWT_SECRET , {expiresIn : "1d"})
+      const { email, password } = req.body;
 
-  res.cookie("token", token, {
+      const user = await userModel
+         .findOne({ email })
+         .select("+password");
 
-  httpOnly: true,
+      if (!user) {
+         return res.status(400).json({
+            message: "Invalid email and password"
+         });
+      }
 
-  secure: true,
+      const isPasswordValid = await bcrypt.compare(
+         password,
+         user.password
+      );
 
-  sameSite: "None",
+      if (!isPasswordValid) {
+         return res.status(400).json({
+            message: "Invalid user password"
+         });
+      }
 
-  maxAge: 24 * 60 * 60 * 1000
+      const token = jwt.sign(
+         {
+            userName: user.userName,
+            id: user._id
+         },
+         process.env.JWT_SECRET,
+         {
+            expiresIn: "1d"
+         }
+      );
 
-})
+      res.cookie("token", token, {
+         httpOnly: true,
+         secure: true,
+         sameSite: "None",
+         maxAge: 24 * 60 * 60 * 1000
+      });
 
-  res.status(201).json({
-    message : "User Register succesfully " ,
-    user : {
-      id : user._id ,
-      userName : user.userName ,
-      email : user.email
-    }
-  })
+      res.status(200).json({
+         message: "Login successful",
+         user: {
+            id: user._id,
+            userName: user.userName,
+            email: user.email
+         }
+      });
 
+   } catch (err) {
+
+      console.log(err);
+
+      res.status(500).json({
+         message: err.message
+      });
+   }
 }
 async function logoutUserController(req , res) {
   const token = req.cookies.token || req.headers.authorization?.split(" ")[1] ;
