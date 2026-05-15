@@ -37,7 +37,17 @@ async function registerUserController (req , res ) {
 
   const token = jwt.sign({userName , id : user._id} , process.env.JWT_SECRET , {expiresIn : "1d"})
 
-  res.cookie("token" , token )
+  res.cookie("token", token, {
+
+  httpOnly: true,
+
+  secure: true,
+
+  sameSite: "None",
+
+  maxAge: 24 * 60 * 60 * 1000
+
+})
 
 
     // Send welcome email
@@ -70,7 +80,17 @@ async function loginUserController(req , res) {
   }
   const token = jwt.sign({userName : user.userName , id : user._id} , process.env.JWT_SECRET , {expiresIn : "1d"})
 
-  res.cookie("token" , token )
+  res.cookie("token", token, {
+
+  httpOnly: true,
+
+  secure: true,
+
+  sameSite: "None",
+
+  maxAge: 24 * 60 * 60 * 1000
+
+})
 
   res.status(201).json({
     message : "User Register succesfully " ,
@@ -94,7 +114,15 @@ async function logoutUserController(req , res) {
        EX: expiryTime
     }
   );
-  res.clearCookie("token")
+  res.clearCookie("token", {
+
+  httpOnly: true,
+
+  secure: true,
+
+  sameSite: "None"
+
+})
    res.json({
         message: "Logged out"
     });
