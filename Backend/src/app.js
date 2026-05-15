@@ -10,8 +10,8 @@ const app = express() ;
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-  origin :"http://localhost:5173" ,
-  credentials : true
+  origin: "https://interview-ai-full-stack-1.onrender.com",
+    credentials : true
 }))
 app.set('trust proxy', 1)
 
